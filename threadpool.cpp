@@ -63,7 +63,7 @@ void ThreadPool::threadFunc()
     for(;;)
     {
         //创建任务智能指针，使得任务队列中的任务能够被多个线程共享
-        std::shared_ptr<Task> task;
+        std::unique_ptr<Task> task;
         //加一个括号，使得锁能在获取之后被释放，使得其他任务队列能够获取锁
     {
    //获取锁
@@ -86,7 +86,7 @@ void ThreadPool::threadFunc()
     if(task!=nullptr)
     {
    //当前线程执行这个任务
-   task->run();
+   task->exec();
     }
     }
 }
@@ -104,3 +104,26 @@ Task::Task()
 
 Task::~Task()
 {}
+
+ Result::Result(std::shared_ptr<Result> result,bool _set_value):
+        result_(result),
+        set_value_(_set_value)
+    {}
+
+Any Result::get()
+{
+    sem_.wait();
+    return any_;
+}
+
+void Result::set(Any any)
+{
+    this->any_ = any;
+    sem_.post(); 
+}
+
+void Task::exec()
+{
+        run();
+    
+}
